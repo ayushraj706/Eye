@@ -3,12 +3,6 @@
  *
  * Injects into the YouTube Music iframe context via postMessage
  * and MutationObserver to hide/remove ad elements.
- *
- * Strategy:
- * 1. CSS injection to hide known ad selectors (immediate)
- * 2. MutationObserver to catch dynamically injected ads (persistent)
- * 3. postMessage bridge to communicate with the iframe if same-origin allows
- * 4. Auto-skip: detect video ad state and fast-forward past it
  */
 
 // All known YouTube Music ad selectors (updated June 2026)
@@ -54,11 +48,13 @@ export const AD_SELECTORS = [
   '.ytmusic-you-there-renderer',
 ]
 
-// Generate CSS string from selectors
+// Generate CSS string from selectors (COMPILER SAFE METHOD)
 export function generateAdBlockCSS(): string {
+  const selectors = AD_SELECTORS.join(',\n');
+  
   return `
 /* YTMusic Wrapper — Ad Block Layer */
-${AD_SELECTORS.map(s => `${s}`).join(',\n')} {
+` + selectors + ` {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
@@ -81,21 +77,23 @@ ytmusic-menu-renderer [aria-label*="Premium"],
 ytmusic-menu-renderer [aria-label*="Upgrade"] {
   display: none !important;
 }
-`
+`;
 }
 
 // Script to inject into page context (runs inside WebView)
 export function generateAdBlockScript(): string {
+  const cssString = generateAdBlockCSS();
+  
   return `
 (function() {
   'use strict';
 
   const AD_SELECTORS = ${JSON.stringify(AD_SELECTORS)};
 
-  // Inject CSS immediately
+  // Inject CSS immediately (COMPILER SAFE METHOD)
   const style = document.createElement('style');
   style.id = 'ytmusic-adblock';
-  style.textContent = \`${generateAdBlockCSS()}\`;
+  style.textContent = ${JSON.stringify(cssString)};
   (document.head || document.documentElement).appendChild(style);
 
   // Helper: remove matching elements from DOM entirely
@@ -191,7 +189,7 @@ export function generateAdBlockScript(): string {
 
   console.log('[YTMusic Wrapper] Ad blocker active ✓');
 })();
-`
+`;
 }
 
 // Hook to inject script into iframe (same-origin workaround using Capacitor)
