@@ -40,23 +40,52 @@ jobs:
           rm -rf .next
           npm run build
 
-      # 🛠️ Android folder setup aur Crash hone se bachane ke liye permissions inject karega
+      # 🛠️ Fresh Android Generation + Package Naming Alignment (Crash aur Identity Fix)
       - name: Setup Capacitor Android
         run: |
+          # 1. Purane aadhe-adhure code ko server se saaf karo
           rm -rf android
+          
+          # 2. Fresh wrapper platform generate karo
           npx cap add android
           npx cap sync android
           
-          # CRASH FIX: AndroidManifest.xml me Internet Permissions aur Cleartext Traffic automatic add karega
+          # 3. build.gradle (App level) mein applicationId dynamically badlo
+          SED_APP_GRADLE="android/app/build.gradle"
+          if [ -f "$SED_APP_GRADLE" ]; then
+            sed -i 's/applicationId ".*"/applicationId "com.ytmusic.wrapper"/g' $SED_APP_GRADLE
+            echo "App level build.gradle patched! ✓"
+          fi
+
+          # 4. AndroidManifest.xml network settings fix karo
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
-            # Internet aur Network State permissions inject karega
+            # Internet aur Network State permissions inject karo
             sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST_PATH
-            # Application tag me cleartext traffic aur hardware acceleration allow karega
+            # Cleartext traffic aur hardware acceleration enable karo (Splash screen par freeze fix)
             sed -i 's/<application/<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"/g' $MANIFEST_PATH
-            echo "AndroidManifest.xml successfully patched with Network permissions! ✓"
-          else
-            echo "Warning: Manifest file nahi mili patching ke liye."
+            echo "AndroidManifest.xml successfully patched! ✓"
+          fi
+
+          # 5. Java Folder Setup (Default path se shift karke com.ytmusic.wrapper banana)
+          cd android/app/src/main/java
+          
+          # Pehle se bana default activity dhundo
+          DEFAULT_MAIN_ACT=$(find . -name "MainActivity.java" | head -n 1)
+          
+          if [ ! -z "$DEFAULT_MAIN_ACT" ]; then
+            # Custom directory path banao
+            mkdir -p com/ytmusic/wrapper
+            # File ko naye folder mein copy karo
+            cp $DEFAULT_MAIN_ACT com/ytmusic/wrapper/MainActivity.java
+            # Java file ke andar ka package header text badlo
+            sed -i 's/package .*/package com.ytmusic.wrapper;/g' com/ytmusic/wrapper/MainActivity.java
+            
+            # Purane default folders (like io/ or com/example/) ko delete karo taaki duplicate compile error na aaye
+            find . -maxdepth 1 -type d ! -name "." ! -name "com" -exec rm -rf {} + 2>/dev/null || true
+            rm -rf com/example com/ionic 2>/dev/null || true
+            
+            echo "MainActivity package structure successfully aligned! ✓"
           fi
 
       # 🚀 Fresh generated directory ke andar jaakar universal APK banayega
