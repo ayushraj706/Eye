@@ -40,12 +40,24 @@ jobs:
           rm -rf .next
           npm run build
 
-      # 🛠️ Aadhe-adhure folder ko delete karke ekdum fresh Android platform setup karega
+      # 🛠️ Android folder setup aur Crash hone se bachane ke liye permissions inject karega
       - name: Setup Capacitor Android
         run: |
           rm -rf android
           npx cap add android
           npx cap sync android
+          
+          # CRASH FIX: AndroidManifest.xml me Internet Permissions aur Cleartext Traffic automatic add karega
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            # Internet aur Network State permissions inject karega
+            sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST_PATH
+            # Application tag me cleartext traffic aur hardware acceleration allow karega
+            sed -i 's/<application/<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"/g' $MANIFEST_PATH
+            echo "AndroidManifest.xml successfully patched with Network permissions! ✓"
+          else
+            echo "Warning: Manifest file nahi mili patching ke liye."
+          fi
 
       # 🚀 Fresh generated directory ke andar jaakar universal APK banayega
       - name: Build APK (Release)
@@ -69,7 +81,7 @@ jobs:
             cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/YTMusic-Signed.apk
           fi
 
-      # 📦 Ab download button me bilkul SIGNED application file milegi
+      # 📦 Sirf ek single main application file download button mein dega (Vivo T4x ke liye perfect)
       - name: Upload Universal APK
         uses: actions/upload-artifact@v4
         with:
