@@ -1,37 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Static export ke liye zaroori
   output: 'export',
+  
+  // URL path fix karne ke liye
   trailingSlash: true,
+  
+  // Images optimization static site ke liye band karna zaroori hai
   images: {
     unoptimized: true,
   },
-  // Allow YouTube Music domain in iframes
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://music.youtube.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "frame-src https://music.youtube.com https://www.youtube.com",
-              "img-src 'self' data: https: blob:",
-              "media-src 'self' https: blob:",
-              "connect-src 'self' https://music.youtube.com https://www.youtube.com",
-            ].join('; '),
-          },
-        ],
-      },
-    ]
-  },
+  
+  // Headers hata diye gaye hain kyunki static export mein ye server-side kaam nahi karte.
+  // CSP (Content Security Policy) agar zaroori hai, toh use 'layout.tsx' mein 
+  // <meta http-equiv="Content-Security-Policy" content="..."> tag ki tarah daalna.
 }
 
 module.exports = nextConfig
