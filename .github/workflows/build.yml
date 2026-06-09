@@ -33,7 +33,7 @@ jobs:
           rm -rf .next
           npm run build
 
-      # 🛠️ Naya Android platform setup + Teri Custom Files ka Forceful Injector
+      # 🛠️ Naya Android platform setup + Teri Custom Files ka Forceful Injector (With Black Screen Fix)
       - name: Setup Capacitor and Inject Custom Android Logic
         run: |
           # 1. Pehle cloud par agar koi tute-phute traces hain toh saaf karo
@@ -48,7 +48,7 @@ jobs:
           npx cap add android
           npx cap sync android
           
-          # 4. Ab tumhara custom logic (जो tumne repo me save kiya tha) naye folder ke upar overwrite karo
+          # 4. Ab tumhara custom logic naye folder ke upar overwrite karo
           if [ -d "android_tmp" ]; then
             echo "Injecting your custom Android configurations (MainActivity, Manifest, Gradle)..."
             
@@ -60,6 +60,21 @@ jobs:
             # Custom package path (com/ytmusic/wrapper) bana kar MainActivity.java shift karo
             mkdir -p android/app/src/main/java/com/ytmusic/wrapper
             cp -f android_tmp/app/src/main/java/com/ytmusic/wrapper/MainActivity.java android/app/src/main/java/com/ytmusic/wrapper/MainActivity.java || true
+            
+            # ⚡ JAVA COMPILE CRASH FIX: MainActivity me functions ko dynamic public specifier me force-change karega
+            TARGET_MAIN_ACT="android/app/src/main/java/com/ytmusic/wrapper/MainActivity.java"
+            if [ -f "$TARGET_MAIN_ACT" ]; then
+              sed -i 's/protected void onResume()/public void onResume()/g' $TARGET_MAIN_ACT
+              sed -i 's/protected void onPause()/public void onPause()/g' $TARGET_MAIN_ACT
+              echo "MainActivity.java access modifiers forced to public! ✓"
+            fi
+            
+            # ⚡ BLACK SCREEN & WEBVIEW FIX: Manifest me cleartext code ko false se badal kar true force karega
+            TARGET_MANIFEST="android/app/src/main/AndroidManifest.xml"
+            if [ -f "$TARGET_MANIFEST" ]; then
+              sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/g' $TARGET_MANIFEST
+              echo "AndroidManifest.xml cleartext patch successfully applied! ✓"
+            fi
             
             # Naye default folders (com/example ya io/ionic) ka kachra saaf karo duplicate error se bachne ke liye
             cd android/app/src/main/java
