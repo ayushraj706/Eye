@@ -40,17 +40,17 @@ jobs:
           rm -rf .next
           npm run build
 
-      # 🛠️ Fresh Android Generation + Package Naming Alignment (Crash aur Identity Fix)
+      # 🛠️ Fresh Android Generation + Safe Package Pathing (Same file conflict fix)
       - name: Setup Capacitor Android
         run: |
-          # 1. Purane aadhe-adhure code ko server se saaf karo
+          # 1. Purane files ko server se saaf karo
           rm -rf android
           
-          # 2. Fresh wrapper platform generate karo
+          # 2. Fresh native folder generate aur sync karo
           npx cap add android
           npx cap sync android
           
-          # 3. build.gradle (App level) mein applicationId dynamically badlo
+          # 3. build.gradle (App level) mein applicationId check aur patch karo
           SED_APP_GRADLE="android/app/build.gradle"
           if [ -f "$SED_APP_GRADLE" ]; then
             sed -i 's/applicationId ".*"/applicationId "com.ytmusic.wrapper"/g' $SED_APP_GRADLE
@@ -60,42 +60,42 @@ jobs:
           # 4. AndroidManifest.xml network settings fix karo
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
-            # Internet aur Network State permissions inject karo
             sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST_PATH
-            # Cleartext traffic aur hardware acceleration enable karo (Splash screen par freeze fix)
             sed -i 's/<application/<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"/g' $MANIFEST_PATH
             echo "AndroidManifest.xml successfully patched! ✓"
           fi
 
-          # 5. Java Folder Setup (Default path se shift karke com.ytmusic.wrapper banana)
+          # 5. Java Directory Alignment (Safe conditional move ke sath)
           cd android/app/src/main/java
           
-          # Pehle se bana default activity dhundo
+          # Default MainActivity dhundo
           DEFAULT_MAIN_ACT=$(find . -name "MainActivity.java" | head -n 1)
           
           if [ ! -z "$DEFAULT_MAIN_ACT" ]; then
-            # Custom directory path banao
-            mkdir -p com/ytmusic/wrapper
-            # File ko naye folder mein copy karo
-            cp $DEFAULT_MAIN_ACT com/ytmusic/wrapper/MainActivity.java
-            # Java file ke andar ka package header text badlo
-            sed -i 's/package .*/package com.ytmusic.wrapper;/g' com/ytmusic/wrapper/MainActivity.java
-            
-            # Purane default folders (like io/ or com/example/) ko delete karo taaki duplicate compile error na aaye
-            find . -maxdepth 1 -type d ! -name "." ! -name "com" -exec rm -rf {} + 2>/dev/null || true
-            rm -rf com/example com/ionic 2>/dev/null || true
-            
-            echo "MainActivity package structure successfully aligned! ✓"
+            # Agar file pehle se hi 'com/ytmusic/wrapper' mein nahi hai, tabhi copy-shift karo
+            if [[ "$DEFAULT_MAIN_ACT" != *"com/ytmusic/wrapper"* ]]; then
+              mkdir -p com/ytmusic/wrapper
+              cp $DEFAULT_MAIN_ACT com/ytmusic/wrapper/MainActivity.java
+              sed -i 's/package .*/package com.ytmusic.wrapper;/g' com/ytmusic/wrapper/MainActivity.java
+              
+              # Purana kachra saaf karo duplicate se bachne ke liye
+              rm -rf io com/example com/ionic 2>/dev/null || true
+              echo "MainActivity moved to custom package path! ✓"
+            else
+              # ⚡ CRASH FIX: Agar pehle se sahi jagah hai, toh copy skip karke sirf header update karo
+              sed -i 's/package .*/package com.ytmusic.wrapper;/g' $DEFAULT_MAIN_ACT
+              echo "MainActivity already in correct path, package header updated! ✓"
+            fi
           fi
 
-      # 🚀 Fresh generated directory ke andar jaakar universal APK banayega
+      # 🚀 Universal APK build karega
       - name: Build APK (Release)
         working-directory: ./android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
-      # ✍️ UNSIGNED APK KO SIGN KAREGA (Taaki Vivo T4x me installation block na ho)
+      # ✍️ UNSIGNED APK KO SIGN KAREGA (Taaki Vivo T4x me chal sake)
       - name: Sign Android APK
         run: |
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
@@ -103,14 +103,14 @@ jobs:
             $BUILD_TOOLS_DIR/apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android --key-pass pass:android --out android/app/build/outputs/apk/release/YTMusic-Signed.apk android/app/build/outputs/apk/release/app-release-unsigned.apk || true
           fi
           
-          # Backup Fallback: Agar upar wala bypass hua toh debug build auto-generate hogi jo already signed hoti hai
+          # Backup Fallback
           if [ ! -f "android/app/build/outputs/apk/release/YTMusic-Signed.apk" ]; then
-            echo "Release sign failed, generating debug signed build as fallback..."
+            echo "Release sign failed, switching to signed debug module..."
             cd android && ./gradlew assembleDebug
             cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/YTMusic-Signed.apk
           fi
 
-      # 📦 Sirf ek single main application file download button mein dega (Vivo T4x ke liye perfect)
+      # 📦 Final Downloadable File Output
       - name: Upload Universal APK
         uses: actions/upload-artifact@v4
         with:
