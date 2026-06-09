@@ -23,11 +23,20 @@ jobs:
         with:
           node-version: '20'
 
-      # Clean Install (Kyunki ab package.json mein sab perfectly set hai)
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      # Clean aur Build step
+      # 🕵️‍♂️ DETECTIVE STEP 1: Pura project scan karega (Bina ruke saari galtiya batayega)
+      - name: 🕵️‍♂️ Find ALL Syntax Errors (TypeScript)
+        continue-on-error: true
+        run: npx tsc --noEmit
+
+      # 🕵️‍♂️ DETECTIVE STEP 2: Har file ki line-by-line checking (Bina ruke)
+      - name: 🕵️‍♂️ Find ALL Code Errors (ESLint)
+        continue-on-error: true
+        run: npx next lint
+
+      # Asli Build Step (Agar upar galtiya hongi toh ye waise bhi batayega, par upar wale steps exact line batayenge)
       - name: Build Web (Next.js)
         run: |
           rm -rf .next
