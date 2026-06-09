@@ -39,23 +39,19 @@ jobs:
           rm -rf .next
           npm run build
 
-      # 🛠️ Android folder ko setup aur sync karne ke liye
+      # 🛠️ Aadhe-adhure folder ko delete karke ekdum fresh Android platform setup karega
       - name: Setup Capacitor Android
         run: |
-          npx cap add android || echo "Android platform already added"
+          rm -rf android
+          npx cap add android
           npx cap sync android
 
-      # 🚀 Directory switch karke permission set karega aur universal APK banayega
+      # 🚀 Fresh generated directory ke andar jaakar permission set karega aur universal APK banayega
       - name: Build APK (Release)
+        working-directory: ./android
         run: |
-          cd android
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleRelease
-          else
-            echo "Error: gradlew file nahi mili! Platform sync check karo."
-            exit 1
-          fi
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
       # 📦 Sirf ek single main application file download button mein dega (Vivo T4x ke liye perfect)
       - name: Upload Universal APK
