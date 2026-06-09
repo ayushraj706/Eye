@@ -23,11 +23,11 @@ jobs:
         with:
           node-version: '20'
 
-      # Yahan change kiya hai: Force install with legacy-peer-deps
+      # Tailwind v4 aur dependencies ka update
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps
-          npm install -D tailwindcss postcss autoprefixer --legacy-peer-deps
+          npm install -D tailwindcss @tailwindcss/postcss postcss autoprefixer --legacy-peer-deps
           npm install @capacitor-community/keep-awake --legacy-peer-deps
 
       - name: Build Web (Next.js)
@@ -44,6 +44,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          # Path update kiya hai taaki unsigned apk mil jaye
           path: android/app/build/outputs/apk/release/
           
