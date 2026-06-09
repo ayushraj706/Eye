@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
@@ -12,13 +12,16 @@ const config: Config = {
         'yt-black': '#0f0f0f',
         'yt-surface': '#1a1a1a',
         'yt-surface-2': '#212121',
+        'yt-surface-3': '#2d2d2d',
         'yt-red': '#ff0000',
+        'yt-red-dark': '#cc0000',
         'yt-text': '#f1f1f1',
         'yt-text-secondary': '#aaaaaa',
+        'yt-border': '#3d3d3d',
       },
     },
   },
   plugins: [],
-}
+};
 
-export default config
+export default config;
