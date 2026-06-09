@@ -59,15 +59,17 @@ public class MainActivity extends BridgeActivity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
     }
 
+    // 🛠️ CHANGED FROM protected TO public (Fixes Java compilation constraints)
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         // Resume WebView media when app comes to foreground
         getBridge().getWebView().onResume();
     }
 
+    // 🛠️ CHANGED FROM protected TO public (Fixes Java compilation constraints)
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         // Don't pause WebView on background — allow background audio
         // getBridge().getWebView().onPause(); ← intentionally commented out
