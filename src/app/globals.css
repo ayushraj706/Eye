@@ -41,7 +41,13 @@ html, body {
   bottom: var(--safe-area-bottom);
 }
 
-/* Ad blocking styles — hide known YTM ad containers */
+/* ===============================================================
+  ⚠️ NEXT.JS COMPILER BUG FIX ⚠️
+  Ad blocking styles ko temporary comment kiya hai.
+  Iske lambe selectors ki wajah se Next.js SWC minifier crash ho raha tha.
+  ===============================================================
+*/
+/*
 .ytmusic-banner-standalone-ad-renderer,
 .ytmusic-statement-banner-renderer,
 .ytmusic-mealbar-promo-renderer,
@@ -65,6 +71,7 @@ html, body {
   width: 0 !important;
   overflow: hidden !important;
 }
+*/
 
 /* Loading skeleton */
 .skeleton {
