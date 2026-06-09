@@ -23,11 +23,9 @@ jobs:
         with:
           node-version: '20'
 
+      # Clean Install (Kyunki ab package.json mein sab perfectly set hai)
       - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps
-          npm install -D tailwindcss postcss autoprefixer @tailwindcss/postcss --legacy-peer-deps
-          npm install @capacitor-community/keep-awake --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       # Clean aur Build step
       - name: Build Web (Next.js)
