@@ -45,16 +45,21 @@ jobs:
           npx cap add android || echo "Android platform already added"
           npx cap sync android
 
-      # 🚀 Gradlew ko permission dekar single universal APK build karne ke liye
+      # 🚀 Directory switch karke permission set karega aur universal APK banayega
       - name: Build APK (Release)
-        working-directory: ./android
         run: |
-          chmod +x ./gradlew
-          ./gradlew assembleRelease
+          cd android
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleRelease
+          else
+            echo "Error: gradlew file nahi mili! Platform sync check karo."
+            exit 1
+          fi
 
-      # 📦 Isse GitHub ek single Zip download button dega jisme sirf EK main APK hoga
+      # 📦 Sirf ek single main application file download button mein dega (Vivo T4x ke liye perfect)
       - name: Upload Universal APK
         uses: actions/upload-artifact@v4
         with:
-          name: YTMusic-Universal-App
+          name: YTMusic-Vivo-T4x
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
