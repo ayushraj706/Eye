@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
+
+// Next.js ka official tareeka font load karne ka
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'YT Music',
@@ -32,14 +36,9 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body className="bg-black text-white overscroll-none">
+      {/* inter.className se font automatically apply ho jayega */}
+      <body className={`${inter.className} bg-black text-white overscroll-none`}>
         {children}
       </body>
     </html>
