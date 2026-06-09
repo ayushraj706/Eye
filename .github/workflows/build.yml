@@ -23,11 +23,15 @@ jobs:
         with:
           node-version: '20'
 
+      # Yahan change kiya hai: Force install with legacy-peer-deps
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --legacy-peer-deps
+          npm install -D tailwindcss postcss autoprefixer --legacy-peer-deps
+          npm install @capacitor-community/keep-awake --legacy-peer-deps
 
       - name: Build Web (Next.js)
-        run: npm run export
+        run: npm run build
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -40,4 +44,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          # Path update kiya hai taaki unsigned apk mil jaye
+          path: android/app/build/outputs/apk/release/
+          
