@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer glow ring -->
+    <path
+        android:fillColor="#201DB954"
+        android:pathData="M54,10 A44,44 0 1,1 53.9,10 Z" />
+
+    <!-- Main glass circle -->
+    <path
+        android:fillColor="#331DB954"
+        android:pathData="M54,18 A36,36 0 1,1 53.9,18 Z" />
+
+    <!-- Music note stem -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M48,62 L48,36 L66,32 L66,40 L54,43 L54,62 Z" />
+
+    <!-- Music note head 1 -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M42,68 A8,5 0 1,0 42.1,68 Z" />
+
+    <!-- Music note head 2 -->
+    <path
+        android:fillColor="#1DB954"
+        android:pathData="M58,64 A8,5 0 1,0 58.1,64 Z" />
+
+    <!-- Glass highlight -->
+    <path
+        android:fillColor="#30FFFFFF"
+        android:pathData="M36,26 Q54,18 72,26 Q64,20 54,20 Q44,20 36,26 Z" />
+</vector>
