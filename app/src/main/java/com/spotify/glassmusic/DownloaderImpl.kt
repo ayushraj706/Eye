@@ -46,13 +46,12 @@ class DownloaderImpl private constructor() : Downloader() {
         val response = client.newCall(okHttpRequest).execute()
         val body = response.body?.string() ?: ""
 
-        // 🔥 FIX: Map<String, List<String>> ko Map<String, String> mein convert kiya 🔥
-        val headersMap = response.headers.toMultimap().mapValues { it.value.firstOrNull() ?: "" }
-
+        // ✅ FIX: Directly use toMultimap() as it returns Map<String, List<String>>
+        // Jo ki NewPipe ka Response constructor expect karta hai.
         return Response(
             response.code,
             response.message,
-            headersMap, 
+            response.headers.toMultimap(), 
             body,
             request.url()
         )
