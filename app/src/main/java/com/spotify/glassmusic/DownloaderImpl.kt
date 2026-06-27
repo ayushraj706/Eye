@@ -31,12 +31,17 @@ class DownloaderImpl private constructor() : Downloader() {
         val okHttpRequest = okhttp3.Request.Builder()
             .url(request.url())
             .apply {
-                request.headers().forEach { (key, value) ->
-                    addHeader(key, value)
+                // 🔥 FIX: Header values are Lists, loop through them correctly 🔥
+                request.headers().forEach { (key, values) ->
+                    values.forEach { value ->
+                        addHeader(key, value)
+                    }
                 }
+                
                 if (!request.headers().containsKey("User-Agent")) {
                     addHeader("User-Agent", USER_AGENT)
                 }
+                
                 if (request.httpMethod() == "POST") {
                     post(request.dataToSend()?.toRequestBody() ?: byteArrayOf().toRequestBody())
                 }
@@ -46,8 +51,8 @@ class DownloaderImpl private constructor() : Downloader() {
         val response = client.newCall(okHttpRequest).execute()
         val body = response.body?.string() ?: ""
 
-        // ✅ FIX: Directly use toMultimap() as it returns Map<String, List<String>>
-        // Jo ki NewPipe ka Response constructor expect karta hai.
+        // ✅ FIX: NewPipe's Response expects Map<String, List<String>>.
+        // response.headers.toMultimap() provides exactly this format.
         return Response(
             response.code,
             response.message,
