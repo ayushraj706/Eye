@@ -29,8 +29,6 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    # 🔥 NAYA AUTO-FIX STEP 🔥
-    # Yeh missing Icons ko Manifest se hatayega aur Glide ki warning fix karega
     - name: Auto-Fix Manifest and Gradle Warnings
       run: |
         echo "Fixing Missing Icons in Manifest..."
@@ -52,25 +50,40 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # 🔥 SIRF RELEASE APK BANEGA (UNSIGNED) 🔥
-    # Yeh command default roop se Universal APK banati hai jo Vivo T4x (arm64-v8a) par chalega
     - name: Build Unsigned Release APK
       run: ./gradlew assembleRelease --stacktrace
 
-    # Path mein **/*.apk lagaya hai taaki kisi bhi folder ke andar APK ho toh wo upload ho jaye
-    - name: Upload Release APK as Artifact
+    # 🔥 NAYA MAGIC STEP: CLOUD PAR AUTO-SIGNING 🔥
+    - name: Sign Release APK automatically
+      run: |
+        # 1. Unsigned APK ko dhoondo
+        APK_PATH=$(find app/build/outputs/apk/release -name "*-unsigned.apk" | head -n 1)
+        
+        # 2. Cloud par automatically ek Digital Key (Keystore) banao
+        keytool -genkey -v -keystore release.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass "superkey123" -keypass "superkey123" -dname "CN=GlassMusic, OU=App, O=SuperKey, L=Samastipur, S=Bihar, C=IN"
+        
+        # 3. Android build tools ka rasta nikalo
+        BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+        
+        # 4. APK ko align karo (Performance aur Play Store ke liye zaroori)
+        $BUILD_TOOLS/zipalign -v 4 $APK_PATH app-release-aligned.apk
+        
+        # 5. Generate ki gayi key se APK ko Sign karo
+        $BUILD_TOOLS/apksigner sign --ks release.keystore --ks-pass pass:superkey123 --key-pass pass:superkey123 --out app-release-signed.apk app-release-aligned.apk
+
+    # 🔥 AB SIRF SIGN KIYI HUI APK UPLOAD HOGI 🔥
+    - name: Upload Signed Release APK as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: release-apk
-        path: app/build/outputs/apk/release/**/*.apk
+        name: release-apk-signed
+        path: app-release-signed.apk
 
-    # 🔥 DIRECT RELEASE UPLOAD 🔥
     - name: Create Auto-Release and Upload APK
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v1.0.${{ github.run_number }}
         name: Glass Music Auto-Release v1.0.${{ github.run_number }}
-        body: "Automated build for Glass Music app (Unsigned Release). Yeh APK aapke Vivo T4x (arm64-v8a) ke liye fully optimized hai!"
-        files: app/build/outputs/apk/release/**/*.apk
+        body: "Automated build for Glass Music app (Signed Release). Yeh APK ab direct install ho jayegi!"
+        files: app-release-signed.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
