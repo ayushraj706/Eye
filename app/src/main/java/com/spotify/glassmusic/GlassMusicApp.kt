@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.localization.ContentCountry
 import org.schabi.newpipe.extractor.localization.Localization
 
 @UnstableApi
@@ -15,7 +14,15 @@ class GlassMusicApp : Application() {
         instance = this
 
         // Initialize NewPipe Extractor
-        NewPipe.init(DownloaderImpl.init(null), Localization.fromLocalizationCode("en-IN"))
+        // 🔥 FIX: Handling Optional return type for Localization 🔥
+        val localizationOptional = Localization.fromLocalizationCode("en-IN")
+        val localization = if (localizationOptional.isPresent) {
+            localizationOptional.get()
+        } else {
+            Localization.DEFAULT
+        }
+        
+        NewPipe.init(DownloaderImpl.init(null), localization)
 
         // Configure Glide
         Glide.get(this)
